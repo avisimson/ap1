@@ -11,10 +11,13 @@ class Player {
     private:
         char name;
         char type; // 'C' for computer, 'H' for user.
+        int num; //number of player 1 or 2.
     public:
-        Player(char name1, char type1);
+        Player(char name1, char type1, int num1);
         ~Player();
         char getName();
         char getType();
+        void setType(char c);
+        int getNum();
 };
 #endif //REVERSI_PLAYER_H

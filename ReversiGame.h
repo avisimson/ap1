@@ -10,19 +10,21 @@
 #include "Player.h"
 #include "GameType.h"
 class ReversiGame: public GameType {
-    //class has a board, space left in board, matrix of x,y of
-    // possible moves and 2 players.
+    //class has a board, space left in board, 2 matrixes of x,y of
+    // possible moves for both players and 2 players.
 private:
     Board* board;
     Player* player1;
     Player* player2;
     int space;
-    int** possiblePoints;
+    int** possiblePointsone; //possible moves for player1.
+    int** possiblePointstwo; //possible moves for player2.
 public:
     ReversiGame(char p1, char p2);
     ~ReversiGame();
     void playGame();
-    bool playOneTurn(Player* player);
+    bool HumanplayOneTurn(Player* player);
+    bool ComputerplayOneTurn(Player* player);
     void scoreGame();
     void checkPossibleMoves(Player* player);
     bool checkUp(Player* player, int i, int j, bool flip);

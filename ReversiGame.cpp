@@ -11,17 +11,24 @@ using namespace std;
 //constructor, initialize board, possible points matrix and players
 //parameters-p1, p2 are player 1 and 2 names.
 ReversiGame :: ReversiGame(char p1, char p2) {
-    player1 = new Player(p1, 'H'); //HUMAN PLAYER
-    player2 = new Player(p2, 'C'); //COMPUTER PLAYER
+    player1 = new Player(p1, 'H', 1); //HUMAN PLAYER
+    player2 = new Player(p2, 'C', 2); //COMPUTER PLAYER
     board = new Board(p1, p2);
     space = ((board->getSize()) * board->getSize()) - 4;
-    //allocate memory for possible points matrix,
-    // and initialize its values to -1.
-    possiblePoints = new int*[space];
+    //allocate memory for possible points matrix for computer and human players,
+    // and initialize their values to -1.
+    possiblePointsone = new int*[space];
     for (int i = 0; i < space; i++) {
-        possiblePoints[i] = new int[2];
+        possiblePointsone[i] = new int[2];
         for(int j = 0; j < 2; j++) {
-            possiblePoints[i][j] = -1;
+            possiblePointsone[i][j] = -1;
+        }
+    }
+    possiblePointstwo = new int*[space];
+    for (int i = 0; i < space; i++) {
+        possiblePointstwo[i] = new int[2];
+        for(int j = 0; j < 2; j++) {
+            possiblePointstwo[i][j] = -1;
         }
     }
 }
@@ -30,9 +37,13 @@ ReversiGame :: ~ReversiGame() {
     delete player1;
     delete player2;
     for (int i = 0; i < ((board->getSize()) * board->getSize()) - 4; i++) {
-        delete possiblePoints[i];
+        delete possiblePointsone[i];
     }
-    delete possiblePoints;
+    delete possiblePointsone;
+    for (int i = 0; i < ((board->getSize()) * board->getSize()) - 4; i++) {
+        delete possiblePointstwo[i];
+    }
+    delete possiblePointstwo;
     delete board;
 }
 //function runs reversi game until both players can't play or board is full.
@@ -42,10 +53,25 @@ void ReversiGame :: playGame() {
     int cantPlay = 0; //counts if both players cant play to finish game.
     bool b = true;
     board->printBoard();
+    //check if player1 and player2 initialized as C or H type to play.
+    if(player1->getType() != 'C' && player1->getType() != 'H')
+    {
+        cout << "Game cannot be initialized, player1 type is wrong" << endl;
+        return;
+    }
+    if(player2->getType() != 'C' && player2->getType() != 'H')
+    {
+        cout << "Game cannot be initialized, player2 type is wrong" << endl;
+        return;
+    }
     //Game loop.
     while(space > 0 && cantPlay < 2) {
         if(currentTurn == 1) {
-            b = playOneTurn(player1);
+            if(player1->getType() == 'C') {
+                b = ComputerplayOneTurn(player1);
+            } else {
+                b = HumanplayOneTurn(player1);
+            }
             currentTurn++;
             if (b == false) {
                 cantPlay++;
@@ -54,7 +80,11 @@ void ReversiGame :: playGame() {
                 space--;
             }
         } else if (cantPlay < 2) {
-            b = playOneTurn(player2);
+            if(player2->getType() == 'C') {
+                b = ComputerplayOneTurn(player2);
+            } else {
+                b = HumanplayOneTurn(player2);
+            }
             currentTurn--;
             if (b == false) {
                 cantPlay++;
@@ -70,9 +100,21 @@ void ReversiGame :: playGame() {
 //parameters: player is the char sign for the player which is his turn.
 //function plays on turn of reversi by checking possible moves for the player,
 //and plays the turn for him.
-//return: true is player played turn, false
-bool ReversiGame :: playOneTurn(Player* player) {
+//return: true is player played turn, false if not.
+bool ReversiGame :: HumanplayOneTurn(Player* player) {
     checkPossibleMoves(player);
+    int** possiblePoints;
+    //create new matrix that will point on the correct matrix according to
+    // if player is player 1 or 2.
+    if(player->getNum() == 1) {
+        possiblePoints = possiblePointsone;
+    } else if(player->getNum() == 2) {
+        possiblePoints = possiblePointstwo;
+    } else {
+        cout << player->getName() <<
+             " is not initialized as player1 or player2" << endl;
+        return false;
+    }
     if (possiblePoints[0][0] == -1) { //player has no possible moves, cant play
         cout << player->getName()
              << " You have no possible moves, turn passed." << endl;
@@ -138,6 +180,31 @@ bool ReversiGame :: playOneTurn(Player* player) {
         }
     }
 }
+//parameters: player is the char sign for the player which is his turn.
+//function plays on turn of reversi by checking possible moves for the player,
+//and plays the turn for him.
+//return: true is player played turn, false if not.
+bool ReversiGame :: ComputerplayOneTurn(Player* player) {
+    checkPossibleMoves(player);
+    int** possiblePoints;
+    //create new matrix that will point on the correct matrix according to
+    // if player is player 1 or 2.
+    if(player->getNum() == 1) {
+        possiblePoints = possiblePointsone;
+    } else if(player->getNum() == 2) {
+        possiblePoints = possiblePointstwo;
+    if (possiblePoints[0][0] == -1) { //player has no possible moves, cant play
+        cout << player->getName()
+             << " You have no possible moves, turn passed." << endl;
+        return false;
+    } else { //player can play
+        int index = 0, min = board->getSize() * board->getSize(),
+                globalMinIndex = 0;
+        while (possiblePoints[index][0] != -1) {
+            if()
+        }
+    }
+}
 //function checks who is the winner and prints the winner and the score.
 //run on the board matrix and count how much player1 shows up and how much
 //player 2 shows up.
@@ -162,6 +229,8 @@ void ReversiGame :: scoreGame() {
         cout << "The Game ended in a DRAW." << endl;
     }
 }
+//function gets a player as a parameter and update the possible moves of
+//the player on the human/computer possible points array.
 void ReversiGame :: checkPossibleMoves(Player* player) {
     int i, j, count = 0;
     for(i = 1; i <= board->getSize(); i++) {
@@ -175,8 +244,13 @@ void ReversiGame :: checkPossibleMoves(Player* player) {
                    || checkUpRight(player, i, j, false)
                    || checkDownLeft(player, i, j, false)
                    || checkDownRight(player, i, j, false)) {
-                    possiblePoints[count][0] = i;
-                    possiblePoints[count][1] = j;
+                    if(player->getType() == 'C') {
+                        possibleCPoints[count][0] = i;
+                        possibleCPoints[count][1] = j;
+                    } else {
+                        possibleHPoints[count][0] = i;
+                        possibleHPoints[count][1] = j;
+                    }
                     count++;
                 }
             }
